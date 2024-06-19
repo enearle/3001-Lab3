@@ -109,19 +109,16 @@ public class Grid : MonoBehaviour
         // Task 2 test -- should render a cyan path from start to end!      
         
         // Some new curated colors to go with my favorite hallucinated color 'Magenta'
-        // I did this to test that the recursion worked correctly and confirm the 
+        // I did this to test that the code worked correctly and confirm the 
         // List<Cell> elements were sequential xy locations.
         List<Cell> path = Pathing.FloodFill(start, end, tiles, count, this);
         for (int i = 0; i < path.Count; i++)
         {
-            ColorTile(path[i], new Color((1f -(float)i/(path.Count - 1)) * 0.6117647f,
+            ColorTile(path[i], new Color((1f - (float)i/(path.Count - 1)) * 0.6117647f,
                 ((float)i/(path.Count -1)),
                 1));
         }
-
-
         
-
     }
 
     public void ColorTile(Cell cell, Color color)

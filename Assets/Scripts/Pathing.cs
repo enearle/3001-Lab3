@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -89,7 +90,16 @@ public static class Pathing
         }
 
         // Retrace our steps if we found a path!
-        return found ? Retrace(nodes, end, start) : new List<Cell>();
+        if (found)
+        {
+            List<Cell> path = Retrace(nodes, end, start);
+            path.Reverse();
+            return path;
+        }
+        else
+        {
+            return new List<Cell>();
+        }
     }
 
     // Task 2: Follow the pseudocode to create an algorithm that makes a list of cells
@@ -102,7 +112,7 @@ public static class Pathing
         if(!nodes[cell.row, cell.col].curr.Equals(start)) // Lol, the top comment on (Computerphile) Mike's Dijkstra video.
             path.AddRange(Retrace(nodes, nodes[cell.row, cell.col].prev, start));
         
-        return path;
+        return path; // Reversed outside
     }
 
     // Task 1: Follow the pseudocode to create an algorithm that makes a list of cells
