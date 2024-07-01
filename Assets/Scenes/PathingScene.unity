@@ -167,7 +167,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ece5d19ef3b1bc844b914f81c06240ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  count: 522
   tilePrefab: {fileID: 7815882577050853496, guid: ba58bf94bb626cb42838162e7baa5c28, type: 3}
+  mover: {fileID: 1045141311057140980, guid: 47d08911ee9ac3f47b53692555f20b57, type: 3}
 --- !u!1 &1061618140
 GameObject:
   m_ObjectHideFlags: 0

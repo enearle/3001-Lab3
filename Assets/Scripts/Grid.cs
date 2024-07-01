@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
+using Utils;
 
 public class Grid : MonoBehaviour
 {
@@ -12,6 +14,8 @@ public class Grid : MonoBehaviour
     [SerializeField]
     GameObject tilePrefab;
 
+    [SerializeField] private GameObject mover;
+
     int rows = 10;
     int cols = 20;
     List<List<GameObject>> tileObjects = new List<List<GameObject>>();
@@ -19,18 +23,18 @@ public class Grid : MonoBehaviour
     {
         //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }, // 0
-        { 1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 1
-        { 1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 2
-        { 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 3
-        { 1, 2, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 4
-        { 1, 2, 3, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 5
-        { 1, 0, 3, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 6
+        { 1, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 1
+        { 1, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 2
+        { 1, 3, 3, 3, 2, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 3
+        { 1, 3, 3, 3, 1, 2, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 4
+        { 1, 3, 3, 3, 0, 1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 5
+        { 1, 3, 3, 3, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 6
         { 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 7
         { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, // 8
         { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }  // 9
     };
 
-    Cell start = new Cell { row = 4, col = 6 };
+    Cell start = new Cell { row = 1, col = 9 };
     Cell end = new Cell { row = 7, col = 4 };
 
     void Start()
@@ -39,6 +43,8 @@ public class Grid : MonoBehaviour
         // Queue is "first in first out (FIFO)".
         List<int> nl = new List<int>();
         Queue<int> nq = new Queue<int>();
+        PriorityQueue<int, float> pq = new PriorityQueue<int, float>();
+        
         nl.Add(1);
         nl.Add(2);
         nl.Add(3);
@@ -93,13 +99,19 @@ public class Grid : MonoBehaviour
                 ColorTile(new Cell { col = col, row = row });
             }
         }
-
+        
         Vector3 mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouse.z = 0.0f;
 
         Cell mouseCell = WorldToGrid(mouse);
         ColorTile(mouseCell, Color.cyan);
 
+        if (Input.GetMouseButtonDown(0))
+            start = mouseCell;
+        if (Input.GetMouseButtonDown(1))
+            end = mouseCell;
+        
+        
         // Task 1 test -- if done correctly you'll get a magenta "plus" around your cursor!
         foreach (Cell adj in Pathing.Adjacents(mouseCell, rows, cols))
         {
@@ -111,12 +123,24 @@ public class Grid : MonoBehaviour
         // Some new curated colors to go with my favorite hallucinated color 'Magenta'
         // I did this to test that the code worked correctly and confirm the 
         // List<Cell> elements were sequential xy locations.
-        List<Cell> path = Pathing.FloodFill(start, end, tiles, count, this);
+        //List<Cell> path = Pathing.FloodFill(start, end, tiles, count, this);
+        List<Cell> path = Pathing.Dijkstra(start, end, tiles, count, this);
         for (int i = 0; i < path.Count; i++)
         {
             ColorTile(path[i], new Color((1f - (float)i/(path.Count - 1)) * 0.6117647f,
                 ((float)i/(path.Count -1)),
                 1));
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space) && path.Count > 0)
+        {
+            List<Vector3> locPath = new List<Vector3>();
+            foreach (var cell in path)
+            {
+                locPath.Add(new Vector3(cell.col + 0.5f,9 - cell.row + 0.5f));
+            }
+            DerpLerp dl = Instantiate(mover, new Vector3(start.col + 0.5f, 9 - start.row + 0.5f), quaternion.identity).GetComponent<DerpLerp>();
+            dl.Initialize(locPath);
         }
         
     }
